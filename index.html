@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PorciGestor – Sistema de Gestión Porcina</title>
+  <meta name="description" content="PorciGestor: plataforma cloud para la gestión integral de granjas porcinas." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="login-screen">
+  <div class="login-bg-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">🐷</div>
+      <h1 class="login-title">PorciGestor</h1>
+      <p class="login-subtitle">Sistema de Gestión Porcina Inteligente</p>
+    </div>
+    <form id="login-form" class="login-form" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label for="username">Usuario</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="username" placeholder="admin@granja.com" autocomplete="username" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
+        </div>
+      </div>
+      <div class="login-options">
+        <label class="checkbox-label"><input type="checkbox" /> Recordarme</label>
+        <a href="#" class="forgot-link">¿Olvidó su contraseña?</a>
+      </div>
+      <button type="submit" class="btn-login">
+        <span id="login-btn-text">Iniciar Sesión</span>
+        <span id="login-spinner" class="spinner hidden"></span>
+      </button>
+      <p id="login-error" style="color:#ff6b6b;font-size:0.85rem;text-align:center;margin-top:8px;min-height:20px;"></p>
+    </form>
+  </div>
+</div>
+
+<!-- MAIN APPLICATION -->
+<div id="app" class="app hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span class="sidebar-logo-icon">🐷</span>
+        <span class="sidebar-logo-text">PorciGestor</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a href="#" class="nav-item active" data-module="dashboard" onclick="showModule('dashboard',this)">
+        <span class="nav-icon">📊</span><span class="nav-text">Dashboard</span>
+      </a>
+
+      <div class="nav-section-label">Módulos</div>
+      <a href="#" class="nav-item" data-module="inventario" onclick="showModule('inventario',this)">
+        <span class="nav-icon">🐖</span><span class="nav-text">Inventario Biológico</span>
+      </a>
+      <a href="#" class="nav-item" data-module="reproductivo" onclick="showModule('reproductivo',this)">
+        <span class="nav-icon">🧬</span><span class="nav-text">Gestión Reproductiva</span>
+      </a>
+      <a href="#" class="nav-item" data-module="sanitario" onclick="showModule('sanitario',this)">
+        <span class="nav-icon">💉</span><span class="nav-text">Sanitario & Bioseguridad</span>
+      </a>
+      <a href="#" class="nav-item" data-module="almacen" onclick="showModule('almacen',this)">
+        <span class="nav-icon">🌾</span><span class="nav-text">Almacén & Nutrición</span>
+      </a>
+      <a href="#" class="nav-item" data-module="analitica" onclick="showModule('analitica',this)">
+        <span class="nav-icon">📈</span><span class="nav-text">Analítica & ICA</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar" id="sidebar-avatar">?</div>
+        <div class="user-info">
+          <span class="user-name" id="sidebar-name">Cargando...</span>
+          <span class="user-role" id="sidebar-role">Usuario</span>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="handleLogout()" title="Cerrar sesión">⏏</button>
+    </div>
+    <button class="btn-logout-full" onclick="handleLogout()">
+      <span>🚪</span>
+      <span class="btn-logout-text">Cerrar Sesión</span>
+    </button>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content" id="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <div class="breadcrumb" id="breadcrumb">Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <div class="cloud-status">
+          <span class="cloud-dot"></span>
+          <span>Cloud Sincronizado</span>
+        </div>
+        <!-- BOTÓN REPORTE PDF -->
+        <button class="btn-pdf-report" onclick="generatePDFReport()" title="Generar Reporte PDF">
+          📄 Reporte PDF
+        </button>
+        <div class="notif-wrapper">
+          <button class="notif-btn" id="notif-btn" onclick="toggleNotifications()">
+            🔔
+            <span class="notif-badge" id="notif-badge">4</span>
+          </button>
+          <div class="notif-panel hidden" id="notif-panel">
+            <div class="notif-header">
+              <h3>Notificaciones</h3>
+              <button onclick="clearNotifications()" class="clear-btn">Limpiar todo</button>
+            </div>
+            <div class="notif-list" id="notif-list"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MODULE VIEWS -->
+    <div class="module-container" id="module-container">
+
+      <!-- DASHBOARD -->
+      <section id="mod-dashboard" class="module active">
+        <div class="module-header">
+          <h2>Dashboard General</h2>
+          <span class="module-date" id="current-date"></span>
+        </div>
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-blue">🐖</div>
+            <div class="kpi-info">
+              <span class="kpi-value" id="kpi-total-piara">0</span>
+              <span class="kpi-label">Total Piara</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-pink">🧬</div>
+            <div class="kpi-info">
+              <span class="kpi-value" id="kpi-gestaciones">0</span>
+              <span class="kpi-label">Gestaciones Activas</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-green">💉</div>
+            <div class="kpi-info">
+              <span class="kpi-value" id="kpi-refuerzos">0</span>
+              <span class="kpi-label">Refuerzos Pendientes</span>
+            </div>
+          </div>
+          <!-- NUEVO KPI VACUNADOS EN POBLACIÓN -->
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-teal">🛡️</div>
+            <div class="kpi-info">
+              <span class="kpi-value" id="kpi-vacunados">0/0</span>
+              <span class="kpi-label">Vacunados en Población</span>
+              <span class="kpi-sub" id="kpi-vacunados-pct">0% vacunados</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-orange">🌾</div>
+            <div class="kpi-info">
+              <span class="kpi-value" id="kpi-stock-total">0 kg</span>
+              <span class="kpi-label">Stock Total Alimento</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-purple">📈</div>
+            <div class="kpi-info">
+              <span class="kpi-value" id="kpi-ica">—</span>
+              <span class="kpi-label">ICA Promedio</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-red">⚠️</div>
+            <div class="kpi-info">
+              <span class="kpi-value" id="kpi-alertas">0</span>
+              <span class="kpi-label">Alertas Críticas</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row">
+          <div class="chart-card">
+            <h3 class="chart-title">Distribución de la Piara</h3>
+            <div class="donut-wrap">
+              <svg viewBox="0 0 160 160" class="donut-svg">
+                <circle r="60" cx="80" cy="80" fill="none" stroke="#1e293b" stroke-width="24"/>
+                <circle r="60" cx="80" cy="80" fill="none" stroke="#6366f1" stroke-width="24" stroke-dasharray="113 263" stroke-dashoffset="0" class="donut-seg"/>
+                <circle r="60" cx="80" cy="80" fill="none" stroke="#ec4899" stroke-width="24" stroke-dasharray="72 263" stroke-dashoffset="-113" class="donut-seg"/>
+                <circle r="60" cx="80" cy="80" fill="none" stroke="#f59e0b" stroke-width="24" stroke-dasharray="52 263" stroke-dashoffset="-185" class="donut-seg"/>
+                <circle r="60" cx="80" cy="80" fill="none" stroke="#10b981" stroke-width="24" stroke-dasharray="26 263" stroke-dashoffset="-237" class="donut-seg"/>
+              </svg>
+              <div class="donut-center"><span class="donut-num" id="donut-center-num">0</span><span class="donut-lbl">Total</span></div>
+            </div>
+            <div class="donut-legend" id="donut-legend">
+              <div style="color:var(--text-muted);font-size:.85rem">Sin animales</div>
+            </div>
+          </div>
+
+          <div class="chart-card wide">
+            <h3 class="chart-title">Partos Proyectados – Próximos 30 días</h3>
+            <div class="bar-chart-wrap">
+              <div class="bar-chart" id="parto-chart"></div>
+              <div class="bar-labels" id="parto-labels"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity / Alerts -->
+        <div class="two-col">
+          <div class="table-card">
+            <h3>Alertas Activas</h3>
+            <div class="alert-list" id="dashboard-alerts"></div>
+          </div>
+          <div class="table-card">
+            <h3>Actividad Reciente</h3>
+            <div class="activity-list" id="dashboard-activity"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- INVENTARIO BIOLÓGICO -->
+      <section id="mod-inventario" class="module">
+        <div class="module-header">
+          <h2>Inventario Biológico y Genético</h2>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn-ghost" onclick="openModalLotes()" style="border:1.5px solid var(--indigo);color:var(--indigo);font-weight:600">📦 Gestionar Lotes</button>
+            <button class="btn-primary" onclick="openModal('modal-animal')">+ Nuevo Animal</button>
+          </div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-pill stat-blue">🐖 Total: <strong id="inv-total">0</strong></div>
+          <div class="stat-pill stat-pink">♀ Hembras: <strong id="inv-hembras">0</strong></div>
+          <div class="stat-pill stat-purple">♂ Machos: <strong id="inv-machos">0</strong></div>
+          <div class="stat-pill stat-green">🐣 Lechones: <strong id="inv-lechones">0</strong></div>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" placeholder="🔍 Buscar por ID, nombre o raza..." class="filter-input" oninput="filterInventarioCustom()" />
+          <select class="filter-select" id="filter-raza-inv" onchange="filterInventarioCustom()">
+            <option value="">Todas las razas</option>
+            <option>Pietrain</option>
+            <option>Landrace</option>
+            <option>Yorkshire</option>
+            <option>Duroc</option>
+            <option>Cruce F1</option>
+          </select>
+          <select class="filter-select" id="filter-estado-inv" onchange="filterInventarioCustom()">
+            <option value="">Todos los estados</option>
+            <option>Activo</option>
+            <option>Gestante</option>
+            <option>Lactante</option>
+            <option>Engorde</option>
+            <option>Padrote</option>
+          </select>
+          <select class="filter-select" id="filter-lote-inv" onchange="filterInventarioCustom()">
+            <option value="">Todos los lotes</option>
+          </select>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="data-table" id="tbl-inventario">
+            <thead>
+              <tr>
+                <th>ID Arete</th>
+                <th>Nombre</th>
+                <th>Raza</th>
+                <th>Estado</th>
+                <th>Lote</th>
+                <th>Sexo</th>
+                <th>Calidad</th>
+                <th>Peso (kg)</th>
+                <th>Fecha Ingreso</th>
+                <th>💉 Vacunas</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="inventario-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- REPRODUCTIVO -->
+      <section id="mod-reproductivo" class="module">
+        <div class="module-header">
+          <h2>Gestión Reproductiva</h2>
+          <button class="btn-primary" onclick="openModal('modal-monta')">+ Registrar Monta</button>
+        </div>
+
+        <div class="repro-grid">
+          <!-- Calculadora de Gestación -->
+          <div class="calc-card">
+            <h3>🧮 Calculadora de Gestación (114 días)</h3>
+            <div class="calc-body">
+              <div class="form-group">
+                <label>Fecha de Monta</label>
+                <input type="date" id="fecha-monta" class="form-control" onchange="calcGestacion()" />
+              </div>
+              <div class="calc-result hidden" id="calc-result">
+                <div class="result-row">
+                  <span class="result-label">📅 Parto Estimado</span>
+                  <span class="result-value" id="fecha-parto">—</span>
+                </div>
+                <div class="result-row">
+                  <span class="result-label">⏰ Días Restantes</span>
+                  <span class="result-value" id="dias-restantes">—</span>
+                </div>
+                <div class="result-row">
+                  <span class="result-label">📢 Preparar Jaula</span>
+                  <span class="result-value" id="fecha-jaula">—</span>
+                </div>
+                <div class="gestacion-bar-wrap">
+                  <label>Progreso gestación</label>
+                  <div class="gestacion-bar"><div class="gestacion-fill" id="gestacion-fill"></div></div>
+                  <span class="gestacion-pct" id="gestacion-pct">0%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Verracos -->
+          <div class="calc-card">
+            <h3>♂ Control de Verracos</h3>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead><tr><th>ID</th><th>Nombre</th><th>Raza</th><th>Montas</th><th>Último Uso</th><th>Estado</th></tr></thead>
+                <tbody id="verracos-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Montas Registradas -->
+        <div class="table-card mt-20">
+          <div class="flex-between">
+            <h3>Montas Registradas</h3>
+            <span class="badge badge-blue" id="montas-gest-count">0 gestaciones activas</span>
+          </div>
+          <!-- BARRA DE BÚSQUEDA MONTAS -->
+          <div class="filter-bar" style="margin-bottom:12px">
+            <input type="text" id="search-montas" placeholder="🔍 Buscar por cerda, verraco, fecha..." class="filter-input" oninput="renderMontas()" />
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table" id="tbl-montas">
+              <thead>
+                <tr>
+                  <th>ID Cerda / Nombre</th>
+                  <th>Verraco</th>
+                  <th>Fecha Monta</th>
+                  <th>Parto Estimado</th>
+                  <th>Días Restantes</th>
+                  <th>Estado</th>
+                  <th>Jaula</th>
+                </tr>
+              </thead>
+              <tbody id="montas-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SANITARIO -->
+      <section id="mod-sanitario" class="module">
+        <div class="module-header">
+          <h2>Sanitario & Bioseguridad</h2>
+          <button class="btn-primary" onclick="openModal('modal-vacuna')">+ Registrar Vacunación</button>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-pill stat-green">✅ Al día: <strong id="san-aldia">0</strong></div>
+          <div class="stat-pill stat-yellow">⚠ Próx. 7 días: <strong id="san-proximos">0</strong></div>
+          <div class="stat-pill stat-red">🚨 Vencidos: <strong id="san-vencidos">0</strong></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchTab('vacunas','tab-vac',this)">💉 Vacunaciones</button>
+          <button class="tab-btn" onclick="switchTab('desparasitaciones','tab-des',this)">🧴 Desparasitaciones</button>
+          <button class="tab-btn" onclick="switchTab('alertas-san','tab-alerts',this)">🔔 Alertas Próximas</button>
+        </div>
+
+        <div class="tab-content" id="tab-vac">
+          <!-- BARRA DE BÚSQUEDA VACUNAS -->
+          <div class="filter-bar" style="margin-bottom:12px">
+            <input type="text" id="search-vacunas" placeholder="🔍 Buscar por animal, nombre, vacuna..." class="filter-input" oninput="renderVacunas()" />
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table" id="tbl-vacunas">
+              <thead>
+                <tr>
+                  <th>ID Animal / Nombre</th>
+                  <th>Vacuna</th>
+                  <th>Dosis</th>
+                  <th>Fecha Aplicación</th>
+                  <th>Refuerzo (días)</th>
+                  <th>Próximo Refuerzo</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="vacunas-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="tab-content hidden" id="tab-des">
+          <!-- BARRA DE BÚSQUEDA DESPARASITACIONES -->
+          <div class="filter-bar" style="margin-bottom:12px">
+            <input type="text" id="search-despar" placeholder="🔍 Buscar por animal, producto..." class="filter-input" oninput="renderDesparasitaciones()" />
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID Animal / Lote</th>
+                  <th>Antiparasitario</th>
+                  <th>Vía</th>
+                  <th>Dosis</th>
+                  <th>Fecha</th>
+                  <th>Próxima Aplicación</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="desparasit-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="tab-content hidden" id="tab-alerts">
+          <div class="alerts-grid" id="san-alerts-grid"></div>
+        </div>
+      </section>
+
+      <!-- ALMACEN -->
+      <section id="mod-almacen" class="module">
+        <div class="module-header">
+          <h2>Almacén & Nutrición Multietapa</h2>
+          <button class="btn-primary" onclick="openModal('modal-stock')">+ Registrar Ingreso</button>
+        </div>
+
+        <div class="stock-grid" id="stock-grid"></div>
+
+        <div class="two-col mt-20">
+          <div class="table-card">
+            <div class="flex-between">
+              <h3>📤 Registrar Egreso Diario</h3>
+            </div>
+            <div class="egreso-form">
+              <div class="form-group">
+                <label>Tipo de Dieta</label>
+                <select class="form-control" id="egreso-dieta" onchange="updateEgresoCalc()">
+                  <option value="">Seleccionar...</option>
+                  <option value="iniciador">Iniciador</option>
+                  <option value="crecimiento">Crecimiento</option>
+                  <option value="engorde">Engorde</option>
+                  <option value="gestacion">Gestación</option>
+                  <option value="lactancia">Lactancia</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Cantidad (kg)</label>
+                <input type="number" class="form-control" id="egreso-kg" min="0" step="0.5" onchange="updateEgresoCalc()" placeholder="0.0" />
+              </div>
+              <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" class="form-control" id="egreso-fecha" />
+              </div>
+              <div class="egreso-preview" id="egreso-preview"></div>
+              <button class="btn-primary" onclick="registrarEgreso()" style="width:100%">Registrar Egreso</button>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <h3>📋 Últimos Movimientos</h3>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead><tr><th>Fecha</th><th>Dieta</th><th>Tipo</th><th>Cantidad</th><th>Saldo</th></tr></thead>
+                <tbody id="movimientos-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANALITICA -->
+      <section id="mod-analitica" class="module">
+        <div class="module-header">
+          <h2>Analítica & Rendimiento (ICA)</h2>
+          <button class="btn-primary" onclick="openModal('modal-pesaje')">+ Registrar Pesaje</button>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-pill stat-blue">ICA Promedio: <strong id="ana-ica">—</strong></div>
+          <div class="stat-pill stat-green">✅ Eficientes: <strong id="ana-eficientes">0</strong></div>
+          <div class="stat-pill stat-red">🚨 Bajo rendimiento: <strong id="ana-bajos">0</strong></div>
+          <div class="stat-pill stat-purple">Ganancia/día: <strong id="ana-ganancia">— g</strong></div>
+        </div>
+
+        <div class="chart-card mt-20">
+          <h3 class="chart-title">Ganancia de Peso por Lote (Últimos 30 días)</h3>
+          <div class="ica-bar-chart" id="ica-bar-chart"></div>
+        </div>
+
+        <div class="table-card mt-20">
+          <div class="flex-between">
+            <h3>Seguimiento de Pesaje Individual</h3>
+            <input type="text" placeholder="🔍 Buscar animal..." class="filter-input" style="max-width:280px" oninput="filterTable(this,'tbl-pesaje')" />
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table" id="tbl-pesaje">
+              <thead>
+                <tr>
+                  <th>ID Animal</th>
+                  <th>Raza</th>
+                  <th>Peso Inicial (kg)</th>
+                  <th>Peso Actual (kg)</th>
+                  <th>Ganancia (kg)</th>
+                  <th>Alimento Total (kg)</th>
+                  <th>ICA</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="pesaje-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /module-container -->
+  </div><!-- /main-content -->
+</div><!-- /app -->
+
+<!-- MODALS -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+<div class="modal-overlay hidden" id="modal-overlay" onclick="closeAllModals()"></div>
+
+<!-- Modal: Nuevo Animal -->
+<div class="modal hidden" id="modal-animal">
+  <div class="modal-header">
+    <h3>🐖 Registrar Nuevo Animal</h3>
+    <button class="modal-close" onclick="closeAllModals()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-grid-2">
+      <div class="form-group"><label>ID Arete *</label><input id="ani-id" type="text" class="form-control" placeholder="Ej: A-100" /></div>
+      <div class="form-group"><label>Nombre</label><input id="ani-nombre" type="text" class="form-control" placeholder="Opcional" /></div>
+      <div class="form-group"><label>Raza *</label>
+        <select id="ani-raza" class="form-control"><option>Pietrain</option><option>Landrace</option><option>Yorkshire</option><option>Duroc</option><option>Cruce F1</option></select>
+      </div>
+      <div class="form-group"><label>Sexo *</label>
+        <select id="ani-sexo" class="form-control"><option>Hembra</option><option>Macho</option></select>
+      </div>
+      <div class="form-group"><label>Peso Inicial (kg)</label><input id="ani-peso" type="number" class="form-control" placeholder="0.0" /></div>
+      <div class="form-group"><label>Fecha de Ingreso</label><input id="ani-ingreso" type="date" class="form-control" /></div>
+      <div class="form-group"><label>Estado</label>
+        <select id="ani-estado" class="form-control"><option>Activo</option><option>Engorde</option><option>Gestante</option><option>Lactante</option><option>Padrote</option></select>
+      </div>
+      <div class="form-group"><label>Calidad Genética</label>
+        <select id="ani-calidad" class="form-control"><option>Élite</option><option>Alta</option><option>Estándar</option><option>Comercial</option></select>
+      </div>
+      <div class="form-group"><label>Lote <span style="color:var(--text-muted);font-size:.8rem">(Opcional)</span></label>
+        <select id="ani-lote" class="form-control">
+          <option value="">Sin lote asignado</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Observaciones</label><textarea id="ani-obs" class="form-control" rows="3" placeholder="Notas adicionales..."></textarea></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn-ghost" onclick="closeAllModals()">Cancelar</button>
+    <button class="btn-primary" onclick="saveAnimal()">Guardar Animal</button>
+  </div>
+</div>
+
+<!-- Modal: Registrar Monta -->
+<div class="modal hidden" id="modal-monta">
+  <div class="modal-header">
+    <h3>🧬 Registrar Monta</h3>
+    <button class="modal-close" onclick="closeAllModals()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-grid-2">
+      <div class="form-group"><label>ID Arete Cerda *</label><input type="text" id="mnt-cerda" class="form-control" placeholder="Ej: A-47" /></div>
+      <div class="form-group"><label>ID Arete Verraco *</label>
+        <input type="text" id="mnt-verraco" class="form-control" placeholder="Ej: V-01" />
+      </div>
+      <div class="form-group"><label>Fecha de Monta *</label><input type="date" class="form-control" id="modal-fecha-monta" onchange="calcModalGestacion()" /></div>
+      <div class="form-group"><label>Tipo de Monta</label>
+        <select id="mnt-tipo" class="form-control"><option>Natural</option><option>Inseminación Artificial</option></select>
+      </div>
+    </div>
+    <div class="calc-result" id="modal-calc-result" style="margin-top:12px">
+      <div class="result-row"><span class="result-label">📅 Parto Estimado</span><span class="result-value" id="modal-fecha-parto">—</span></div>
+      <div class="result-row"><span class="result-label">📢 Preparar Jaula</span><span class="result-value" id="modal-fecha-jaula">—</span></div>
+    </div>
+    <div class="form-group mt-20"><label>Observaciones</label><textarea id="mnt-notas" class="form-control" rows="2" placeholder="Notas..."></textarea></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn-ghost" onclick="closeAllModals()">Cancelar</button>
+    <button class="btn-primary" onclick="saveMonta()">Guardar Monta</button>
+  </div>
+</div>
+
+<!-- Modal: Vacunación -->
+<div class="modal hidden" id="modal-vacuna">
+  <div class="modal-header">
+    <h3>💉 Registrar Vacunación / Tratamiento</h3>
+    <button class="modal-close" onclick="closeAllModals()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-grid-2">
+      <div class="form-group"><label>ID Animal / Lote *</label><input type="text" id="vac-animal" class="form-control" placeholder="Ej: A-47 o Lote L-18" /></div>
+      <div class="form-group"><label>Tipo</label>
+        <select id="vac-tipo" class="form-control"><option>Vacuna</option><option>Desparasitante</option></select>
+      </div>
+      <div class="form-group"><label>Nombre del Medicamento *</label><input type="text" id="vac-nombre" class="form-control" placeholder="Ej: Aftosa, Parvovirus..." /></div>
+      <div class="form-group"><label>Dosis</label><input type="text" id="vac-dosis" class="form-control" placeholder="Ej: 2 ml IM" /></div>
+      <div class="form-group"><label>Fecha Aplicación *</label><input type="date" id="vac-fecha" class="form-control" /></div>
+      <div class="form-group">
+        <label>Días hasta Refuerzo *</label>
+        <input type="number" class="form-control" placeholder="Ej: 180" min="1" id="dias-refuerzo" oninput="calcRefuerzo()" />
+        <small style="color:var(--text-muted)">Ingresa manualmente según la ficha del medicamento</small>
+      </div>
+    </div>
+    <div class="calc-result" id="refuerzo-result" style="margin-top:12px">
+      <div class="result-row"><span class="result-label">📅 Próximo Refuerzo</span><span class="result-value" id="fecha-refuerzo-calc">—</span></div>
+    </div>
+    <div class="form-group mt-20"><label>Observaciones</label><textarea class="form-control" rows="2"></textarea></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn-ghost" onclick="closeAllModals()">Cancelar</button>
+    <button class="btn-primary" onclick="saveVacuna()">Guardar Registro</button>
+  </div>
+</div>
+
+<!-- Modal: Stock Ingreso -->
+<div class="modal hidden" id="modal-stock">
+  <div class="modal-header">
+    <h3>🌾 Registrar Ingreso de Alimento</h3>
+    <button class="modal-close" onclick="closeAllModals()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-grid-2">
+      <div class="form-group"><label>Tipo de Dieta *</label>
+        <select id="stk-tipo" class="form-control"><option value="iniciador">Iniciador</option><option value="crecimiento">Crecimiento</option><option value="engorde">Engorde</option><option value="gestacion">Gestación</option><option value="lactancia">Lactancia</option></select>
+      </div>
+      <div class="form-group"><label>Cantidad (kg) *</label><input type="number" id="stk-cantidad" class="form-control" placeholder="0.0" /></div>
+      <div class="form-group"><label>Proveedor</label><input type="text" id="stk-proveedor" class="form-control" placeholder="Nombre del proveedor" /></div>
+      <div class="form-group"><label>Fecha Ingreso</label><input type="date" id="stk-fecha" class="form-control" /></div>
+      <div class="form-group"><label>Costo por kg (Bs.)</label><input type="number" class="form-control" placeholder="0.00" /></div>
+      <div class="form-group"><label>N° Factura</label><input type="text" class="form-control" placeholder="Opcional" /></div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn-ghost" onclick="closeAllModals()">Cancelar</button>
+    <button class="btn-primary" onclick="saveStock()">Registrar Ingreso</button>
+  </div>
+</div>
+
+<!-- Modal: Pesaje -->
+<div class="modal hidden" id="modal-pesaje">
+  <div class="modal-header">
+    <h3>⚖️ Registrar Pesaje</h3>
+    <button class="modal-close" onclick="closeAllModals()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-grid-2">
+      <div class="form-group"><label>ID Animal *</label><input type="text" id="pes-animal" class="form-control" placeholder="Ej: E-12" /></div>
+      <div class="form-group"><label>Fecha Pesaje *</label><input type="date" id="pes-fecha" class="form-control" /></div>
+      <div class="form-group"><label>Peso Registrado (kg)</label><input type="number" id="pes-peso" class="form-control" placeholder="0.0" step="0.1" /></div>
+      <div class="form-group"><label>Alimento Consumido (kg)</label><input type="number" id="pes-alimento" class="form-control" placeholder="0.0" step="0.1" /></div>
+    </div>
+    <div class="ica-calc-box" id="ica-calc-box"></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn-ghost" onclick="closeAllModals()">Cancelar</button>
+    <button class="btn-primary" onclick="savePesaje()">Guardar Pesaje</button>
+  </div>
+</div>
+
+<!-- Modal: Editar Animal -->
+<div class="modal hidden" id="modal-edit-animal">
+  <div class="modal-header">
+    <h3>✏️ Editar Animal</h3>
+    <button class="modal-close" onclick="closeAllModals()">✕</button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="edit-ani-id-hidden" />
+    <div class="edit-animal-info" id="edit-animal-info" style="background:var(--surface-2,#1e293b);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:2rem">🐖</div>
+      <div>
+        <div style="font-weight:700;font-size:1.05rem" id="edit-ani-display-id">—</div>
+        <div style="color:var(--text-muted);font-size:.85rem" id="edit-ani-display-info">—</div>
+      </div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group"><label>Estado *</label>
+        <select id="edit-ani-estado" class="form-control">
+          <option value="Activo">Activo</option>
+          <option value="Engorde">Engorde</option>
+          <option value="Gestante">Gestante</option>
+          <option value="Lactante">Lactante</option>
+          <option value="Padrote">Padrote</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Lote <span style="color:var(--text-muted);font-size:.8rem">(Opcional)</span></label>
+        <select id="edit-ani-lote" class="form-control">
+          <option value="">Sin lote asignado</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Peso Actual (kg)</label>
+        <input id="edit-ani-peso" type="number" class="form-control" placeholder="0.0" step="0.1" />
+      </div>
+      <div class="form-group"><label>Calidad Genética</label>
+        <select id="edit-ani-calidad" class="form-control">
+          <option>Élite</option><option>Alta</option><option>Estándar</option><option>Comercial</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Observaciones</label>
+      <textarea id="edit-ani-obs" class="form-control" rows="3" placeholder="Notas de edición..."></textarea>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn-ghost" onclick="closeAllModals()">Cancelar</button>
+    <button class="btn-primary" onclick="saveEditAnimal()">💾 Guardar Cambios</button>
+  </div>
+</div>
+
+<!-- Modal: Gestionar Lotes -->
+<div class="modal hidden" id="modal-lotes" style="max-width:680px">
+  <div class="modal-header">
+    <h3>📦 Gestionar Lotes</h3>
+    <button class="modal-close" onclick="closeAllModals()">✕</button>
+  </div>
+  <div class="modal-body">
+    <!-- Formulario nuevo lote -->
+    <div style="background:var(--surface-2,#1e293b);border-radius:12px;padding:16px;margin-bottom:20px">
+      <h4 style="margin-bottom:14px;color:var(--indigo,#6366f1);font-size:.95rem;font-weight:700">➕ Crear Nuevo Lote</h4>
+      <div class="form-grid-2">
+        <div class="form-group"><label>ID del Lote *</label><input id="lote-id" type="text" class="form-control" placeholder="Ej: L-A1, Engorde-01" /></div>
+        <div class="form-group"><label>Nombre del Lote *</label><input id="lote-nombre" type="text" class="form-control" placeholder="Ej: Engorde Lola & Tiburoncín" /></div>
+        <div class="form-group"><label>Descripción / Propósito</label><input id="lote-descripcion" type="text" class="form-control" placeholder="Ej: Engorde, Cría, Reemplazo..." /></div>
+        <div class="form-group"><label>Fecha de Creación</label><input id="lote-fecha" type="date" class="form-control" /></div>
+      </div>
+      <button class="btn-primary" onclick="saveLote()" style="width:100%;margin-top:4px">Crear Lote</button>
+    </div>
+    <!-- Lista de lotes existentes -->
+    <h4 style="margin-bottom:10px;font-size:.9rem;color:var(--text-muted)">Lotes Registrados</h4>
+    <div class="table-wrapper" style="max-height:240px;overflow-y:auto">
+      <table class="data-table" id="tbl-lotes">
+        <thead><tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Fecha</th><th>Animales</th><th>Acciones</th></tr></thead>
+        <tbody id="lotes-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn-ghost" onclick="closeAllModals()">Cerrar</button>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- SUPABASE CONFIG -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+  // config.js no se sube al repositorio: copia config.example.js y pon tus datos
+  window._supabase = supabase.createClient(
+    window.PORCIGESTOR_CONFIG.SUPABASE_URL,
+    window.PORCIGESTOR_CONFIG.SUPABASE_ANON_KEY
+  );
+</script>
+<script src="app.js"></script>
+</body>
+</html>
