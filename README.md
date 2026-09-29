@@ -76,6 +76,8 @@ Es un sitio estático, así que se publica gratis en **Netlify** o **Cloudflare 
 
 > No uses GitHub Pages para la versión real: `config.js` no está en el repo (a propósito) y el sitio no tendría conexión con la base de datos.
 
-## 👤 Autor
+## Autor
 
-**Dominic De Freitas** — [GitHub](https://github.com/dominic0285) · [LinkedIn](https://www.linkedin.com/in/dominic-de-freitas-07102828a/)
+**Dominic De Freitas** — Ingeniero en Informática (UGMA). Desarrollo aplicaciones móviles y web con React Native, TypeScript, Node.js y Python, y busco mi primer puesto como desarrollador junior remoto.
+
+[Perfil de GitHub](https://github.com/dominic0285) · [LinkedIn](https://www.linkedin.com/in/dominic-de-freitas-07102828a/) · dominicdefreitasfd@gmail.com
